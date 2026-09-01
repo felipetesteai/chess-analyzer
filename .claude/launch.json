@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "chess-analyzer",
+      "runtimeExecutable": "uv",
+      "runtimeArgs": ["run", "python", "main.py", "--no-window", "--port", "8765"],
+      "port": 8765
+    },
+    {
+      "name": "chess-analyzer-web",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["web/serve.py", "8080"],
+      "port": 8080
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+# Cloudflare Pages / Netlify leem este arquivo.
+#
+# COOP+COEP liberam SharedArrayBuffer, que o Stockfish multi-thread exige.
+# A chamada a api.chess.com continua funcionando porque e uma requisicao CORS
+# bem-sucedida (a API manda Access-Control-Allow-Origin: *), e resposta CORS
+# satisfaz o COEP.
+/*
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: require-corp
+
+# O engine e o livro de aberturas nunca mudam de conteudo sem mudar de nome.
+/vendor/*
+  Cache-Control: public, max-age=31536000, immutable
+/openings_book.txt
+  Cache-Control: public, max-age=86400

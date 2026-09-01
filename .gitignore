@@ -1,0 +1,14 @@
+# Ambiente Python local
+.venv/
+__pycache__/
+*.pyc
+
+# Binario nativo do Stockfish (114 MB) - so a versao local usa, e cada um
+# baixa o build da propria CPU. O Stockfish WASM em web/vendor/ VAI no commit.
+/engine/
+
+# Cache de analises: contem as partidas que voce analisou
+/data/
+
+# Scripts das skills usadas como referencia (codigo de terceiros)
+/reference/

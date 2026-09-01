@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Chess Analyzer</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23302e2b'/%3E%3Ctext x='16' y='25' font-size='24' text-anchor='middle' fill='%2381b64c'%3E%E2%99%9B%3C/text%3E%3C/svg%3E" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark">&#9819;</span>
+    <span>Chess Analyzer</span>
+  </div>
+  <div class="topbar-right">
+    <span id="engine-badge" class="engine-badge">verificando engine...</span>
+    <button id="btn-home" class="ghost hidden">&larr; Partidas</button>
+  </div>
+</header>
+
+<!-- ------------------------------------------------------------------ -->
+<!-- Tela 1: escolher a partida                                          -->
+<!-- ------------------------------------------------------------------ -->
+<main id="view-games" class="view">
+  <section class="panel search-panel">
+    <h1>Analise suas partidas do chess.com</h1>
+    <p class="muted">
+      Tudo roda na sua maquina: as partidas vem da API publica do chess.com e a
+      avaliacao e feita pelo Stockfish local.
+    </p>
+    <form id="form-user" class="row">
+      <input id="username" type="text" placeholder="seu usuario do chess.com" autocomplete="off" spellcheck="false" />
+      <select id="count">
+        <option value="15">15 partidas</option>
+        <option value="30" selected>30 partidas</option>
+        <option value="50">50 partidas</option>
+        <option value="100">100 partidas</option>
+      </select>
+      <select id="depth" title="Profundidade da analise do Stockfish">
+        <option value="10">profundidade 10 &middot; rapida</option>
+        <option value="14" selected>profundidade 14 &middot; equilibrada</option>
+        <option value="18">profundidade 18 &middot; profunda</option>
+      </select>
+      <button type="submit" class="primary">Buscar</button>
+    </form>
+    <details class="pgn-drop">
+      <summary>ou cole um PGN avulso</summary>
+      <textarea id="pgn-input" rows="5" placeholder="[Event &quot;...&quot;] 1. e4 e5 ..."></textarea>
+      <button id="btn-pgn" class="primary small">Analisar PGN</button>
+    </details>
+    <p id="games-error" class="error hidden"></p>
+  </section>
+
+  <section id="games-list" class="panel games hidden">
+    <div class="games-head">
+      <h2 id="games-title">Partidas</h2>
+      <div class="batch-launch">
+        <span class="muted tiny">clique numa partida para analisar</span>
+        <select id="batch-count" title="Quantas partidas entram na analise em lote">
+          <option value="5">5 partidas</option>
+          <option value="10" selected>10 partidas</option>
+          <option value="20">20 partidas</option>
+          <option value="0">todas da lista</option>
+        </select>
+        <button id="btn-batch" class="primary small">Achar meu erro mais comum</button>
+      </div>
+    </div>
+    <div id="games-rows"></div>
+  </section>
+</main>
+
+<!-- ------------------------------------------------------------------ -->
+<!-- Tela 3: analise em lote                                             -->
+<!-- ------------------------------------------------------------------ -->
+<main id="view-batch" class="view hidden">
+  <section id="batch-progress" class="panel progress hidden">
+    <h3 id="batch-title">Analisando o lote...</h3>
+    <div class="bar"><div id="batch-fill"></div></div>
+    <p id="batch-text" class="muted">preparando</p>
+    <p id="batch-eta" class="muted tiny"></p>
+    <button id="btn-batch-cancel" class="small">Cancelar</button>
+  </section>
+
+  <div id="batch-body" class="hidden">
+    <section class="panel hero-card">
+      <div class="hero-left">
+        <span class="muted tiny">Seu erro mais comum</span>
+        <h2 id="hero-label"></h2>
+        <p id="hero-hint" class="hero-hint"></p>
+      </div>
+      <div class="hero-right">
+        <div class="hero-share" id="hero-share"></div>
+        <div class="muted tiny" id="hero-count"></div>
+      </div>
+    </section>
+
+    <section class="tiles" id="batch-tiles"></section>
+
+    <section class="panel">
+      <h3 class="card-title">Todos os padrões de erro</h3>
+      <div id="pattern-bars"></div>
+    </section>
+
+    <section class="two-col">
+      <div class="panel">
+        <h3 class="card-title">Onde você erra</h3>
+        <div id="phase-bars"></div>
+      </div>
+      <div class="panel">
+        <h3 class="card-title">Aberturas mais caras</h3>
+        <table id="openings-table" class="data-table"></table>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h3 class="card-title">Erros que mais custaram <span class="muted tiny">— clique para abrir a posição</span></h3>
+      <div id="top-errors"></div>
+    </section>
+  </div>
+</main>
+
+<!-- ------------------------------------------------------------------ -->
+<!-- Tela 2: revisao da partida                                          -->
+<!-- ------------------------------------------------------------------ -->
+<main id="view-review" class="view hidden">
+  <div class="review-grid">
+
+    <div class="board-column">
+      <div class="player-strip" id="strip-top"></div>
+
+      <div class="board-wrap">
+        <div class="evalbar" id="evalbar">
+          <div class="evalbar-black"></div>
+          <div class="evalbar-white" id="evalbar-white"></div>
+          <span class="evalbar-text" id="evalbar-text">0.0</span>
+        </div>
+
+        <div class="board" id="board">
+          <svg class="board-overlay" id="overlay" viewBox="0 0 800 800"></svg>
+        </div>
+      </div>
+
+      <div class="player-strip" id="strip-bottom"></div>
+
+      <div class="controls">
+        <button id="btn-flip" title="Girar (F)">&#8645;</button>
+        <button id="btn-first" title="Inicio (Home)">&#8676;</button>
+        <button id="btn-prev" title="Anterior (&larr;)">&#8592;</button>
+        <button id="btn-next" title="Proximo (&rarr;)">&#8594;</button>
+        <button id="btn-last" title="Fim (End)">&#8677;</button>
+        <label class="toggle">
+          <input type="checkbox" id="chk-arrow" checked /> Melhor lance
+        </label>
+      </div>
+    </div>
+
+    <aside class="side-column">
+      <div id="progress-card" class="panel progress hidden">
+        <h3>Analisando com Stockfish...</h3>
+        <div class="bar"><div id="progress-fill"></div></div>
+        <p id="progress-text" class="muted">preparando</p>
+      </div>
+
+      <div id="review-body" class="hidden">
+        <div class="panel accuracy-card">
+          <div class="acc-side" id="acc-white"></div>
+          <div class="acc-mid">
+            <span class="muted tiny">Precisao</span>
+            <span id="opening-name" class="opening"></span>
+          </div>
+          <div class="acc-side" id="acc-black"></div>
+        </div>
+
+        <div class="panel graph-card">
+          <svg id="evalgraph" viewBox="0 0 600 140" preserveAspectRatio="none"></svg>
+        </div>
+
+        <div class="panel comment-card" id="comment-card"></div>
+
+        <div class="panel counts-card">
+          <table id="counts-table"></table>
+        </div>
+
+        <div class="panel moves-card">
+          <div id="moves-list" class="moves"></div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

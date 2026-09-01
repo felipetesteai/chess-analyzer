@@ -1,0 +1,14 @@
+[project]
+name = "chess-analyzer"
+version = "0.1.0"
+description = "Analise suas partidas do chess.com localmente com Stockfish, com revisao visual no estilo do chess.com"
+requires-python = ">=3.10"
+dependencies = [
+    "chess>=1.11.1",
+    "flask>=3.0",
+    "requests>=2.32",
+    "pywebview>=5.3",
+]
+
+[tool.uv]
+package = false

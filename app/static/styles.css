@@ -1,0 +1,323 @@
+/* Paleta inspirada na tela de Game Review do chess.com. */
+:root {
+  --bg: #262421;
+  --panel: #302e2b;
+  --panel-2: #3a3835;
+  --line: #46443f;
+  --text: #e9e6e2;
+  --muted: #9a9691;
+  --green: #81b64c;
+  --green-dark: #5d8c35;
+
+  --sq-light: #ebecd0;
+  --sq-dark: #739552;
+  --sq-sel: #f5f36b;
+
+  --c-brilliant: #26c2a3;
+  --c-great: #749bbf;
+  --c-best: #81b64c;
+  --c-excellent: #95bb4a;
+  --c-good: #96af8b;
+  --c-book: #a88865;
+  --c-inaccuracy: #f7c631;
+  --c-mistake: #ffa459;
+  --c-miss: #ff7769;
+  --c-blunder: #fa412d;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Segoe UI", Roboto, system-ui, sans-serif;
+  font-size: 15px;
+}
+
+.hidden { display: none !important; }
+.muted { color: var(--muted); }
+.tiny { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
+.error { color: var(--c-miss); }
+
+/* ---------------------------------------------------------------- topbar */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 18px; background: var(--panel); border-bottom: 1px solid var(--line);
+}
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: .02em; }
+.brand-mark { color: var(--green); font-size: 26px; line-height: 1; }
+.topbar-right { display: flex; align-items: center; gap: 12px; }
+.engine-badge {
+  font-size: 12px; color: var(--muted);
+  background: var(--panel-2); border: 1px solid var(--line);
+  padding: 4px 10px; border-radius: 999px;
+}
+.engine-badge.ok { color: var(--green); border-color: var(--green-dark); }
+.engine-badge.bad { color: var(--c-blunder); border-color: var(--c-blunder); }
+
+/* --------------------------------------------------------------- botoes */
+button {
+  font: inherit; cursor: pointer; border-radius: 6px; border: 1px solid var(--line);
+  background: var(--panel-2); color: var(--text); padding: 8px 14px;
+}
+button:hover { background: #454340; }
+button.primary { background: var(--green); border-color: var(--green-dark); color: #17240b; font-weight: 700; }
+button.primary:hover { background: #8fc65a; }
+button.small { padding: 6px 12px; font-size: 14px; }
+button.ghost { background: transparent; }
+input, select, textarea {
+  font: inherit; background: #211f1d; color: var(--text);
+  border: 1px solid var(--line); border-radius: 6px; padding: 9px 12px;
+}
+input:focus, select:focus, textarea:focus { outline: 2px solid var(--green-dark); }
+
+/* ------------------------------------------------------------ tela lista */
+.view { padding: 22px; max-width: 1420px; margin: 0 auto; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; }
+.search-panel h1 { margin: 0 0 6px; font-size: 22px; }
+.search-panel p { margin: 0 0 14px; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; }
+.row #username { flex: 1 1 260px; }
+
+.pgn-drop { margin-top: 14px; }
+.pgn-drop summary { cursor: pointer; color: var(--muted); font-size: 14px; }
+.pgn-drop textarea { width: 100%; margin: 10px 0; resize: vertical; font-family: ui-monospace, Consolas, monospace; font-size: 13px; }
+
+.games { margin-top: 18px; }
+.games-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; gap: 12px; flex-wrap: wrap; }
+.games-head h2 { margin: 0; font-size: 17px; }
+.depth-picker { color: var(--muted); font-size: 13px; display: flex; align-items: center; gap: 8px; }
+
+.game-row {
+  display: grid; grid-template-columns: 26px 1fr auto auto auto;
+  gap: 14px; align-items: center;
+  padding: 11px 12px; border-radius: 8px; border: 1px solid transparent; cursor: pointer;
+}
+.game-row:hover { background: var(--panel-2); border-color: var(--line); }
+.game-row + .game-row { border-top: 1px solid #3a3835; }
+.result-dot { width: 20px; height: 20px; border-radius: 4px; display: grid; place-items: center; font-size: 12px; font-weight: 700; color: #17240b; }
+.result-win { background: var(--green); }
+.result-loss { background: var(--c-blunder); color: #fff; }
+.result-draw { background: #8b8987; }
+.game-main { min-width: 0; }
+.game-opponent { font-weight: 600; }
+.game-sub { font-size: 12.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.game-meta { font-size: 12.5px; color: var(--muted); text-align: right; white-space: nowrap; }
+.chip { font-size: 11px; padding: 3px 8px; border-radius: 999px; background: var(--panel-2); border: 1px solid var(--line); color: var(--muted); }
+.side-pill { width: 14px; height: 14px; border-radius: 3px; border: 1px solid #666; display: inline-block; }
+.side-white { background: #f2f2f2; }
+.side-black { background: #2b2926; }
+
+/* --------------------------------------------------------- tela revisao */
+.review-grid { display: grid; grid-template-columns: minmax(420px, 1fr) minmax(380px, 460px); gap: 22px; align-items: start; }
+@media (max-width: 1050px) { .review-grid { grid-template-columns: 1fr; } }
+
+.board-column { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: min(64vh, 640px); }
+.board-wrap { display: flex; gap: 10px; }
+
+.evalbar {
+  position: relative; width: 22px; border-radius: 4px; overflow: hidden;
+  background: #3b3937; flex: 0 0 22px;
+}
+.evalbar-black { position: absolute; inset: 0; background: #403d3a; }
+.evalbar-white { position: absolute; left: 0; right: 0; bottom: 0; height: 50%; background: #f4f4f4; transition: height .25s ease; }
+.evalbar-text {
+  position: absolute; left: 0; right: 0; bottom: 3px; text-align: center;
+  font-size: 10px; font-weight: 700; color: #2b2926; z-index: 2;
+}
+.evalbar.negative .evalbar-text { bottom: auto; top: 3px; color: #eceae8; }
+
+.board {
+  position: relative; flex: 1 1 auto; aspect-ratio: 1 / 1; container-type: inline-size;
+  display: grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(8, 1fr);
+  border-radius: 6px; overflow: hidden; user-select: none;
+}
+.sq { position: relative; display: grid; place-items: center; }
+.sq.light { background: var(--sq-light); }
+.sq.dark { background: var(--sq-dark); }
+.sq.hl::after { content: ""; position: absolute; inset: 0; background: rgba(255,241,0,.42); }
+.sq .coord { position: absolute; font-size: 10px; font-weight: 700; opacity: .55; }
+.sq .coord.file { right: 3px; bottom: 1px; }
+.sq .coord.rank { left: 3px; top: 1px; }
+.sq.light .coord { color: var(--sq-dark); }
+.sq.dark .coord { color: var(--sq-light); }
+
+.piece {
+  font-family: "Segoe UI Symbol", "Noto Sans Symbols 2", "DejaVu Sans", sans-serif;
+  font-size: 10.6cqw; /* 8 casas => 12.5cqw por casa */
+  line-height: 1; position: relative; z-index: 1; pointer-events: none;
+}
+.piece.w { color: #fff; -webkit-text-stroke: 1.6px #35322f; text-shadow: 0 1px 2px rgba(0,0,0,.35); }
+.piece.b { color: #3b3835; -webkit-text-stroke: 1.4px #1b1917; text-shadow: 0 1px 2px rgba(0,0,0,.3); }
+
+.board-overlay { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3; }
+
+.move-badge {
+  position: absolute; top: -8%; right: -8%; width: 42%; height: 42%;
+  border-radius: 50%; display: grid; place-items: center;
+  font-size: 3.4cqw; font-weight: 800; color: #fff; z-index: 4;
+  box-shadow: 0 1px 4px rgba(0,0,0,.45);
+}
+
+.player-strip { display: flex; align-items: center; gap: 10px; font-size: 14px; min-height: 30px; }
+.player-strip .name { font-weight: 600; }
+.player-strip .elo { color: var(--muted); font-size: 13px; }
+.player-strip .clock { margin-left: auto; font-variant-numeric: tabular-nums; background: var(--panel-2); border: 1px solid var(--line); border-radius: 5px; padding: 3px 10px; }
+
+.controls { display: flex; gap: 8px; align-items: center; margin-top: 4px; flex-wrap: wrap; }
+.controls button { min-width: 46px; }
+.toggle { color: var(--muted); font-size: 13px; display: flex; align-items: center; gap: 6px; margin-left: auto; }
+
+/* ------------------------------------------------------------- painel */
+.side-column { display: flex; flex-direction: column; gap: 14px; }
+/* Os paineis ficam dentro de #review-body, nao direto na coluna. */
+#review-body { display: flex; flex-direction: column; gap: 14px; }
+
+.progress .bar { height: 8px; background: #211f1d; border-radius: 999px; overflow: hidden; margin: 12px 0 8px; }
+.progress .bar > div { height: 100%; width: 0; background: var(--green); transition: width .2s ease; }
+.progress h3 { margin: 0; font-size: 15px; }
+
+.accuracy-card { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: center; }
+.acc-side { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.acc-value { font-size: 26px; font-weight: 800; padding: 6px 14px; border-radius: 8px; }
+.acc-value.w { background: #f1f1f1; color: #22201e; }
+.acc-value.b { background: #46443f; color: #f1f1f1; }
+.acc-name { font-size: 12.5px; color: var(--muted); max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.acc-mid { text-align: center; }
+.opening { display: block; font-size: 13px; margin-top: 4px; max-width: 170px; }
+
+.graph-card { padding: 10px; }
+#evalgraph { width: 100%; height: 130px; display: block; cursor: pointer; }
+
+.comment-card { display: flex; gap: 12px; align-items: flex-start; min-height: 74px; }
+.comment-icon { flex: 0 0 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; color: #fff; }
+.comment-body { flex: 1; }
+.comment-title { font-weight: 700; margin-bottom: 3px; }
+.comment-text { font-size: 13.5px; color: #cfccc8; line-height: 1.45; }
+.comment-text b { color: var(--text); }
+
+.counts-card table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.counts-card td { padding: 4px 6px; }
+.counts-card td.label { color: #cfccc8; }
+.counts-card td.n { text-align: center; width: 42px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.counts-card .swatch { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; margin-right: 8px; font-size: 10px; font-weight: 800; color: #fff; vertical-align: -4px; }
+
+.moves-card { padding: 8px; }
+.moves { max-height: 340px; overflow-y: auto; display: grid; grid-template-columns: 46px 1fr 1fr; gap: 2px 4px; align-content: start; }
+.moves .num { color: var(--muted); font-size: 13px; text-align: right; padding: 5px 6px; font-variant-numeric: tabular-nums; }
+.mv {
+  display: flex; align-items: center; gap: 6px; padding: 5px 8px;
+  border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: 600;
+}
+.mv:hover { background: var(--panel-2); }
+.mv.active { background: #4a4844; }
+.mv .dot { width: 15px; height: 15px; border-radius: 50%; display: grid; place-items: center; font-size: 9px; font-weight: 800; color: #fff; flex: 0 0 15px; }
+
+.class-brilliant { background: var(--c-brilliant); }
+.class-great { background: var(--c-great); }
+.class-best { background: var(--c-best); }
+.class-excellent { background: var(--c-excellent); }
+.class-good { background: var(--c-good); }
+.class-book { background: var(--c-book); }
+.class-inaccuracy { background: var(--c-inaccuracy); color: #3a2c00; }
+.class-mistake { background: var(--c-mistake); color: #40230a; }
+.class-miss { background: var(--c-miss); }
+.class-blunder { background: var(--c-blunder); }
+
+.txt-brilliant { color: var(--c-brilliant); }
+.txt-great { color: var(--c-great); }
+.txt-best { color: var(--c-best); }
+.txt-excellent { color: var(--c-excellent); }
+.txt-good { color: var(--c-good); }
+.txt-book { color: var(--c-book); }
+.txt-inaccuracy { color: var(--c-inaccuracy); }
+.txt-mistake { color: var(--c-mistake); }
+.txt-miss { color: var(--c-miss); }
+.txt-blunder { color: var(--c-blunder); }
+
+/* ----------------------------------------------------------- tela lote */
+.batch-launch { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.batch-launch select { padding: 6px 10px; font-size: 13px; }
+
+#view-batch { display: flex; flex-direction: column; gap: 14px; }
+.card-title { margin: 0 0 12px; font-size: 15px; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+
+.hero-card { display: flex; align-items: center; gap: 24px; border-left: 4px solid var(--c-blunder); }
+.hero-left { flex: 1; }
+.hero-left h2 { margin: 4px 0 8px; font-size: 26px; }
+.hero-hint { margin: 0; color: #cfccc8; font-size: 14px; line-height: 1.5; max-width: 62ch; }
+.hero-right { text-align: right; }
+.hero-share { font-size: 46px; font-weight: 800; color: var(--c-blunder); line-height: 1; }
+
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.tile { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; text-align: center; }
+.tile-value { font-size: 22px; font-weight: 800; }
+.tile-label { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+.pbar-row + .pbar-row { margin-top: 14px; }
+.pbar-head { display: flex; justify-content: space-between; gap: 12px; font-size: 13.5px; margin-bottom: 5px; }
+.pbar-label { font-weight: 600; }
+.pbar-n { color: var(--muted); white-space: nowrap; }
+.pbar-track { height: 9px; background: #211f1d; border-radius: 999px; overflow: hidden; }
+.pbar-fill { height: 100%; background: var(--green); border-radius: 999px; }
+.pbar-examples { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 7px; }
+.example-chip {
+  font-size: 12px; padding: 3px 9px; border-radius: 999px;
+  background: var(--panel-2); color: var(--muted); border: 1px solid var(--line);
+}
+.example-chip:hover { color: var(--text); border-color: var(--green-dark); }
+
+.data-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.data-table th { text-align: left; color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; padding: 4px 6px; }
+.data-table td { padding: 5px 6px; border-top: 1px solid #3a3835; }
+.data-table td.n { text-align: center; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.error-row {
+  display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+  background: transparent; border: 1px solid transparent; border-radius: 8px; padding: 9px 10px;
+}
+.error-row:hover { background: var(--panel-2); border-color: var(--line); }
+.error-row + .error-row { border-top: 1px solid #3a3835; }
+.error-main { flex: 1; min-width: 0; }
+.error-move { font-weight: 600; font-size: 14px; }
+.error-sub { font-size: 12.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.error-cost { font-weight: 800; color: var(--c-blunder); font-variant-numeric: tabular-nums; }
+
+#batch-progress { max-width: 640px; }
+#btn-batch-cancel { margin-top: 10px; }
+
+/* ------------------------------------------------------- altura travada */
+/* Em tela larga a revisao cabe inteira na janela: a pagina nunca rola, entao o
+   tabuleiro fica parado no mesmo lugar enquanto se passa os lances. Fica no fim
+   do arquivo de proposito - precisa vencer o `max-height` da lista de lances,
+   que tem a mesma especificidade. */
+@media (min-width: 1051px) {
+  body { height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+  .topbar { flex: 0 0 auto; }
+  /* width:100% e obrigatorio: como item flex, o `margin: 0 auto` do .view
+     faria a largura encolher ate o conteudo. */
+  main.view { flex: 1 1 auto; min-height: 0; width: 100%; }
+  #view-games, #view-batch { overflow-y: auto; }
+  #view-review { overflow: hidden; padding-top: 16px; padding-bottom: 16px; }
+
+  /* A linha do grid precisa valer a altura do container - com o `auto` padrao
+     ela cresce com o conteudo e o painel lateral nunca fica limitado. */
+  .review-grid { height: 100%; min-height: 0; grid-template-rows: minmax(0, 1fr); align-items: stretch; }
+  /* 240px = topbar + faixas dos jogadores + controles + espacamentos. */
+  .board-column { max-width: min(calc(100vh - 240px), 640px); }
+  /* overflow auto e rede de seguranca: se os paineis nao couberem, rola o
+     painel lateral - nunca a pagina, para o tabuleiro nao sair do lugar. */
+  .side-column { height: 100%; min-height: 0; overflow-y: auto; }
+  #review-body { flex: 1 1 auto; min-height: 0; }
+
+  /* Estes tem altura de conteudo e nao podem encolher: encolhendo, o texto do
+     comentario era cortado no meio. So a lista de lances e elastica. */
+  .accuracy-card, .graph-card, .comment-card, .counts-card { flex: 0 0 auto; }
+
+  /* A lista de lances absorve a altura que sobra em vez de estourar o painel. */
+  .moves-card { flex: 1 1 auto; min-height: 90px; display: flex; }
+  .moves { max-height: none; min-height: 0; flex: 1 1 auto; }
+}
