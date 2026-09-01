@@ -47,9 +47,13 @@ function fmtEval(cp, mate) {
 
 function fmtClock(sec) {
   if (sec == null) return "";
-  const m = Math.floor(sec / 60);
-  const s = Math.floor(sec % 60);
-  return `${m}:${String(s).padStart(2, "0")}`;
+  // Partidas por dias passam de uma hora: sem isto, 5h05 virava "305:26".
+  const total = Math.floor(sec);
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  const pad = (n) => String(n).padStart(2, "0");
+  return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
 }
 
 function fmtDate(iso) {

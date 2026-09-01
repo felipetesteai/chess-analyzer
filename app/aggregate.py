@@ -90,15 +90,29 @@ def pattern_of(move: dict) -> str:
     return "positional_" + move.get("phase", "middlegame")
 
 
+def is_daily(time_control) -> bool:
+    """Partidas por dias vem como "1/259200" (um lance a cada 3 dias)."""
+    return bool(re.fullmatch(r"\d+/\d+", str(time_control or "")))
+
+
 def base_seconds(time_control: str | None) -> int | None:
     """Tempo inicial em segundos a partir do time control do chess.com."""
     if not time_control:
         return None
-    m = re.match(r"^(\d+)", str(time_control))
+    tc = str(time_control)
+    # "1/259200": o tempo esta DEPOIS da barra. Ler o "1" da frente dava 1 segundo.
+    daily = re.fullmatch(r"\d+/(\d+)", tc)
+    if daily:
+        return int(daily.group(1))
+    # "600" ou "600+5" - o incremento nao conta como tempo base.
+    m = re.match(r"^(\d+)", tc)
     return int(m.group(1)) if m else None
 
 
-def in_time_trouble(move: dict, base: int | None) -> bool:
+def in_time_trouble(move: dict, base: int | None, daily: bool = False) -> bool:
+    # Em partida por dias nao existe apuro de tempo: sao dias por lance.
+    if daily:
+        return False
     clock = move.get("clock")
     if clock is None:
         return False
@@ -132,6 +146,7 @@ def build(entries: list[dict], username: str, depth: int) -> dict:
         review = entry["review"]
         color = game.get("color") or review.get("my_color") or "white"
         base = base_seconds(game.get("time_control"))
+        daily = is_daily(game.get("time_control"))
 
         record[game.get("result", "unknown")] += 1
         acc = (review.get("summary", {}).get(color) or {}).get("accuracy")
@@ -153,8 +168,8 @@ def build(entries: list[dict], username: str, depth: int) -> dict:
             moves_by_phase[m["phase"]] += 1
             bucket["cpl"].append(m.get("cpl", 0))
 
-            tt = in_time_trouble(m, base)
-            if m.get("clock") is not None:
+            tt = in_time_trouble(m, base, daily)
+            if not daily and m.get("clock") is not None:
                 tt_moves += 1
 
             if m.get("class") not in ERROR_CLASSES:

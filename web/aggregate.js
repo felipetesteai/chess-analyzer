@@ -62,13 +62,25 @@ export function patternOf(move) {
   return "positional_" + (move.phase || "middlegame");
 }
 
+/** Partidas por dias vem como "1/259200" (um lance a cada 3 dias). */
+export function isDaily(timeControl) {
+  return /^\d+\/\d+$/.test(String(timeControl || ""));
+}
+
 export function baseSeconds(timeControl) {
   if (!timeControl) return null;
-  const m = /^(\d+)/.exec(String(timeControl));
+  const tc = String(timeControl);
+  // "1/259200": o tempo esta DEPOIS da barra. Ler o "1" da frente dava 1 segundo.
+  const daily = /^\d+\/(\d+)$/.exec(tc);
+  if (daily) return Number(daily[1]);
+  // "600" ou "600+5" — o incremento nao conta como tempo base.
+  const m = /^(\d+)/.exec(tc);
   return m ? Number(m[1]) : null;
 }
 
-function inTimeTrouble(move, base) {
+function inTimeTrouble(move, base, daily) {
+  // Em partida por dias nao existe apuro de tempo: sao dias por lance.
+  if (daily) return false;
   if (move.clock === null || move.clock === undefined) return false;
   const limit = base ? Math.max(30, 0.1 * base) : 30;
   return move.clock < limit;
@@ -100,6 +112,7 @@ export function build(entries, username, depth) {
   for (const { game, review } of entries) {
     const color = game.color || review.my_color || "white";
     const base = baseSeconds(game.time_control);
+    const daily = isDaily(game.time_control);
 
     inc(record, game.result || "unknown");
     const acc = review.summary?.[color]?.accuracy;
@@ -121,8 +134,8 @@ export function build(entries, username, depth) {
       inc(movesByPhase, m.phase);
       bucket.cpl.push(m.cpl ?? 0);
 
-      const tt = inTimeTrouble(m, base);
-      if (m.clock !== null && m.clock !== undefined) ttMoves++;
+      const tt = inTimeTrouble(m, base, daily);
+      if (!daily && m.clock !== null && m.clock !== undefined) ttMoves++;
       if (!ERROR_CLASSES.has(m.class)) continue;
 
       const cost = Math.round((m.win_before - m.win_after) * 10) / 10;
