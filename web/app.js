@@ -8,6 +8,7 @@ import { Engine, canUseThreads } from "./engine.js";
 import * as chesscom from "./chesscom.js";
 import { analyzeGame } from "./review.js";
 import * as agg from "./aggregate.js";
+import * as lichess from "./lichess.js";
 
 const $ = (sel) => document.querySelector(sel);
 const el = (tag, cls, txt) => {
@@ -637,6 +638,8 @@ function goTo(ply) {
     }
   }
 
+  scheduleExplorer();
+
   const cursor = document.getElementById("graph-cursor");
   if (cursor) {
     const x = (state.ply / Math.max(1, moves.length)) * 600;
@@ -921,6 +924,120 @@ function openErrorPosition(err) {
   startAnalysis(game, err.ply);
 }
 
+/* ---------------------------------------------------------- explorador */
+
+let explorerAbort = null;
+let explorerTimer = null;
+
+function updateLichessButton() {
+  const btn = $("#btn-lichess");
+  btn.textContent = lichess.isConnected() ? "Desconectar" : "Conectar Lichess";
+}
+
+$("#btn-lichess").addEventListener("click", async () => {
+  if (lichess.isConnected()) {
+    lichess.disconnect();
+    updateLichessButton();
+    renderExplorer();
+  } else {
+    await lichess.connect();
+  }
+});
+
+$("#explorer-db").addEventListener("change", () => renderExplorer());
+
+/** O explorador acompanha a posição atual do tabuleiro. */
+function scheduleExplorer() {
+  clearTimeout(explorerTimer);
+  // Navegar rápido com as setas não deve disparar uma chamada por lance.
+  explorerTimer = setTimeout(renderExplorer, 250);
+}
+
+async function renderExplorer() {
+  const box = $("#explorer-body");
+  if (!state.review) return;
+
+  if (!lichess.isConnected()) {
+    box.innerHTML = "";
+    const aviso = el("p", "explorer-note");
+    aviso.textContent =
+      "O banco de aberturas é do Lichess e, desde março de 2026, exige uma conta " +
+      "conectada. É grátis, sem limite de uso, e o acesso fica só no seu navegador.";
+    box.append(aviso);
+    return;
+  }
+
+  const m = state.ply > 0 ? state.review.moves[state.ply - 1] : null;
+  const fen = m ? m.fen_after : START_FEN;
+  const jogado = state.ply < state.review.moves.length
+    ? state.review.moves[state.ply].san
+    : null;
+
+  explorerAbort?.abort();
+  explorerAbort = new AbortController();
+
+  box.innerHTML = "";
+  box.append(el("p", "explorer-note", "consultando..."));
+
+  try {
+    const data = await lichess.explore(fen, {
+      db: $("#explorer-db").value,
+      signal: explorerAbort.signal,
+    });
+    paintExplorer(data, jogado);
+  } catch (err) {
+    if (err.name === "AbortError") return;
+    box.innerHTML = "";
+    box.append(el("p", "explorer-note", err.message));
+    if (err instanceof lichess.NotConnectedError) updateLichessButton();
+  }
+}
+
+function paintExplorer(data, jogado) {
+  const box = $("#explorer-body");
+  box.innerHTML = "";
+
+  if (data.opening) box.append(el("div", "explorer-opening", data.opening));
+
+  if (!data.moves.length) {
+    box.append(el("p", "explorer-note", "Posição fora do banco — daqui em diante é partida sua."));
+    return;
+  }
+
+  box.append(el("div", "explorer-total",
+    `${data.total.toLocaleString("pt-BR")} partidas nesta posição`));
+
+  const tabela = el("div", "explorer-rows");
+  for (const mv of data.moves.slice(0, 8)) {
+    const row = el("div", "explorer-row");
+    if (mv.san === jogado) row.classList.add("jogado");
+
+    row.append(el("span", "explorer-san", mv.san));
+    row.append(el("span", "explorer-games", mv.games.toLocaleString("pt-BR")));
+
+    // Barra branco / empate / preto, como no explorador do chess.com.
+    const barra = el("div", "explorer-bar");
+    for (const [cls, pct] of [
+      ["wdl-white", mv.whitePct],
+      ["wdl-draw", mv.drawPct],
+      ["wdl-black", mv.blackPct],
+    ]) {
+      const seg = el("span", cls);
+      seg.style.width = pct + "%";
+      if (pct >= 12) seg.textContent = Math.round(pct) + "%";
+      barra.append(seg);
+    }
+    row.append(barra);
+    tabela.append(row);
+  }
+  box.append(tabela);
+
+  if (jogado && !data.moves.some((mv) => mv.san === jogado)) {
+    box.append(el("p", "explorer-note",
+      `Você jogou ${jogado}, que não aparece entre os lances do banco.`));
+  }
+}
+
 /* ----------------------------------------------------------------- init */
 
 // Como app.js e um modulo, nada dele vaza para o escopo global. Este handle
@@ -928,6 +1045,20 @@ function openErrorPosition(err) {
 window.chessAnalyzer = { state, goTo, showGames, startAnalysis, startBatch };
 
 showEngineIdle();
+updateLichessButton();
+
+// O Lichess devolve o visitante para ca com ?code=... depois da autorizacao.
+lichess.finishLogin().then((r) => {
+  if (r.status === "conectado") {
+    updateLichessButton();
+    renderExplorer();
+  } else if (r.status === "erro") {
+    const err = $("#games-error");
+    err.textContent = r.message;
+    err.classList.remove("hidden");
+  }
+});
+
 try {
   const saved = localStorage.getItem("chess-analyzer:user");
   if (saved) $("#username").value = saved;

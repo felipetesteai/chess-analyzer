@@ -156,6 +156,33 @@ quer olhar a lista de partidas não paga esse download. Depois fica no cache do
 navegador. As revisões ficam no `localStorage` de cada visitante, então nada do
 que as pessoas analisam passa por você.
 
+### Explorador de aberturas
+
+A tela de revisão traz um explorador que acompanha a posição do tabuleiro:
+quais lances já foram jogados dali, quantas vezes e com que resultado, no
+estilo do explorador do chess.com. O lance que você jogou na partida aparece
+destacado, para comparar com o que o mundo faz.
+
+O banco é o do Lichess (o chess.com não expõe o dele na API pública). Desde
+[março de 2026](https://github.com/lichess-org/lila/issues/19610) o explorador
+não aceita mais requisição anônima — continua grátis e sem limite, mas exige
+uma conta conectada.
+
+Como o site não tem backend, cada visitante conecta a própria conta pelo botão
+**Conectar Lichess**, usando OAuth2 Authorization Code + PKCE. Isso significa:
+
+- Não existe *client secret* em lugar nenhum — o fluxo PKCE foi feito para
+  aplicativos totalmente client-side.
+- O token fica no `localStorage` de quem visita e nunca passa por nenhum
+  servidor seu.
+- O token é pedido **sem escopo algum**: dá acesso ao explorador e a nada da
+  conta da pessoa.
+- Não é preciso registrar aplicativo no Lichess — o `client_id` é um
+  identificador arbitrário.
+
+Quem não conectar continua usando o resto do app normalmente; só o painel do
+explorador fica indisponível.
+
 ### Licença
 
 O Stockfish é GPL-3.0 e o binário WebAssembly é redistribuído em `web/vendor/`.
